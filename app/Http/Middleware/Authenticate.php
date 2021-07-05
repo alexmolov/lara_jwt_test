@@ -2,35 +2,20 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
-use JWTAuth;
-use Exception;
-use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
+use Illuminate\Auth\Middleware\Authenticate as Middleware;
 
-class Authenticate extends BaseMiddleware
+class Authenticate extends Middleware
 {
     /**
-     * Handle an incoming request.
+     * Get the path the user should be redirected to when they are not authenticated.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return mixed
+     * @return string|null
      */
-    public function handle($request, Closure $next)
+    protected function redirectTo($request)
     {
-        try {
-           $user = JWTAuth::parseToken()->authenticate();
-        } catch (Exception $e) {
-              if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException){
-            return response()->json(['status' => 'Token is Invalid'], 403);
-          }else if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenExpiredException){
-            return response()->json(['status' => 'Token is Expired'], 401);
-          }else if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenBlacklistedException){
-            return response()->json(['status' => 'Token is Blacklisted'], 400);
-          }else{
-                return response()->json(['status' => 'Authorization Token not found'], 404);
-          }
+        if (! $request->expectsJson()) {
+            return route('login');
         }
-            return $next($request);
     }
 }
